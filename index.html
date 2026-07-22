@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>업무 대장 · 워크리스트</title>
+<meta name="theme-color" content="#1E2A38" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231E2A38'/%3E%3Crect x='140' y='120' width='232' height='280' rx='20' fill='%23FAF8F3'/%3E%3Crect x='170' y='160' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='210' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='260' width='120' height='18' rx='9' fill='%231E2A38'/%3E%3Ccircle cx='256' cy='340' r='40' fill='%23C97B3D'/%3E%3Cpath d='M238 340 L250 352 L276 324' stroke='%23FAF8F3' stroke-width='12' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231E2A38'/%3E%3Crect x='140' y='120' width='232' height='280' rx='20' fill='%23FAF8F3'/%3E%3Crect x='170' y='160' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='210' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='260' width='120' height='18' rx='9' fill='%231E2A38'/%3E%3Ccircle cx='256' cy='340' r='40' fill='%23C97B3D'/%3E%3Cpath d='M238 340 L250 352 L276 324' stroke='%23FAF8F3' stroke-width='12' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+:root {
+  --ink: #1E2A38;
+  --ink-soft: #3A4A5C;
+  --paper: #FAF8F3;
+  --paper-line: #E4DFD2;
+  --teal: #2F6F62;
+  --teal-soft: #E7EFEC;
+  --amber: #C99A3E;
+  --amber-soft: #FBF1DE;
+  --red: #B85450;
+  --red-soft: #F8EAE9;
+  --serif: 'Noto Serif KR', serif;
+  --sans: 'Noto Sans KR', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  min-height: 100vh;
+}
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 4px solid var(--amber);
+}
+
+.topbar-title .eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--amber);
+  font-weight: 500;
+}
+
+.topbar-title h1 {
+  font-family: var(--serif);
+  font-size: 26px;
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn.primary {
+  background: var(--amber);
+  color: var(--ink);
+}
+.btn.primary:hover { opacity: 0.9; }
+
+.btn.ghost {
+  background: transparent;
+  color: var(--paper);
+  border-color: rgba(250,248,243,0.35);
+}
+.btn.ghost:hover { border-color: var(--paper); }
+
+.btn.small {
+  padding: 7px 12px;
+  font-size: 13px;
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 1px solid var(--paper-line);
+}
+.btn.small.ghost {
+  background: transparent;
+  color: var(--ink-soft);
+}
+.btn.small.danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+/* ---------- App shell ---------- */
+
+.app-shell {
+  display: flex;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 32px 80px;
+  gap: 24px;
+}
+
+.tabs {
+  width: 150px;
+  flex-shrink: 0;
+}
+.tabs-label {
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  padding-left: 4px;
+}
+.sheet-tab {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #F0ECE1;
+  border: 1px solid var(--paper-line);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  position: relative;
+}
+.sheet-tab.active {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-chip {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--paper-line);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.filter-chip.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  text-align: center;
+  padding: 70px 20px;
+  border: 1px dashed var(--paper-line);
+  border-radius: 8px;
+  color: var(--ink-soft);
+}
+.stamp-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--red);
+  border-radius: 50%;
+  color: var(--red);
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  transform: rotate(-8deg);
+  margin-bottom: 18px;
+  opacity: 0.55;
+}
+.empty-state h2 {
+  font-family: var(--serif);
+  font-size: 18px;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.empty-state p { font-size: 14px; line-height: 1.6; }
+.empty-state code {
+  background: var(--teal-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--teal);
+}
+
+/* ---------- Ledger table ---------- */
+
+.ledger-wrap {
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ledger thead th {
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--ink);
+  background: #F3EFE5;
+}
+
+.ledger tbody tr {
+  border-bottom: 1px solid var(--paper-line);
+}
+.ledger tbody tr:last-child { border-bottom: none; }
+.ledger tbody tr:hover { background: #F5F2EA; }
+
+.ledger td {
+  padding: 13px 16px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.ledger tr.is-done .title-text {
+  text-decoration: line-through;
+  color: var(--ink-soft);
+  opacity: 0.6;
+}
+
+.status-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--paper-line);
+  cursor: pointer;
+  background: transparent;
+}
+.status-check.checked {
+  background: var(--teal);
+  border-color: var(--teal);
+}
+
+.owner-tag {
+  font-size: 12px;
+  background: var(--teal-soft);
+  color: var(--teal);
+  padding: 3px 9px;
+  border-radius: 12px;
+}
+
+/* D-day stamp badge — signature element */
+.dday-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 12.5px;
+  border: 1.5px solid currentColor;
+  transform: rotate(-3deg);
+}
+.dday-stamp.normal { color: var(--teal); background: var(--teal-soft); }
+.dday-stamp.urgent { color: var(--amber); background: var(--amber-soft); transform: rotate(2deg); }
+.dday-stamp.overdue { color: var(--red); background: var(--red-soft); transform: rotate(-2deg); }
+.dday-stamp.done { color: var(--ink-soft); background: transparent; border-style: dashed; }
+
+.row-del {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 15px;
+}
+.row-del:hover { color: var(--red); }
+
+.edit-row input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--paper-line);
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.row-btn {
+  border: none;
+  background: var(--teal);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+.row-btn.cancel { background: var(--paper-line); color: var(--ink-soft); }
+
+/* ---------- Toast ---------- */
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 720px) {
+  .app-shell { flex-direction: column; padding: 20px; }
+  .tabs { width: 100%; display: flex; gap: 6px; overflow-x: auto; }
+  .sheet-tab { border-radius: 6px; border-right: 1px solid var(--paper-line); }
+}
+
+/* ---------- Sheets connection & settings modal ---------- */
+
+.conn-badge {
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(250,248,243,0.35);
+  color: var(--paper);
+  opacity: 0.85;
+}
+.conn-badge.on {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: white;
+  opacity: 1;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(30,42,56,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+.modal {
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 28px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.modal h2 {
+  font-family: var(--serif);
+  font-size: 19px;
+  margin: 0 0 6px;
+}
+.modal p.hint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+.modal label {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin: 14px 0 5px;
+}
+.modal input {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--paper-line);
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: var(--sans);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="eyebrow">교내 업무 관리</span>
+    <h1>업무 대장</h1>
+  </div>
+  <div class="topbar-actions">
+    <span id="connBadge" class="conn-badge">Sheets 연결 안 됨</span>
+    <button id="settingsBtn" class="btn ghost" title="Google Sheets 연동 설정">⚙️ 연동 설정</button>
+    <button id="notifyBtn" class="btn ghost" title="마감 임박 알림 켜기">🔔 알림 켜기</button>
+    <label class="btn primary">
+      스프레드시트 불러오기
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden />
+    </label>
+  </div>
+</header>
+
+<div class="app-shell">
+
+  <aside class="tabs" id="sheetTabs">
+    <div class="tabs-label">시트철</div>
+  </aside>
+
+  <main class="content">
+
+    <section class="toolbar">
+      <div class="filter-group" role="tablist" aria-label="상태 필터">
+        <button class="filter-chip active" data-filter="all">전체</button>
+        <button class="filter-chip" data-filter="urgent">마감임박</button>
+        <button class="filter-chip" data-filter="overdue">기한초과</button>
+        <button class="filter-chip" data-filter="done">완료</button>
+      </div>
+      <div class="toolbar-right">
+        <button id="addRowBtn" class="btn small">+ 항목 추가</button>
+        <a id="templateBtn" class="btn small ghost" href="template.xlsx" download="업무_템플릿.xlsx">템플릿 내려받기</a>
+        <button id="clearBtn" class="btn small danger">전체 삭제</button>
+      </div>
+    </section>
+
+    <section id="emptyState" class="empty-state">
+      <div class="stamp-mark" aria-hidden="true">未</div>
+      <h2>등록된 업무가 없습니다</h2>
+      <p>스프레드시트(xlsx·csv)를 불러오거나, 항목을 직접 추가하세요.<br/>
+      열 이름: <code>제목, 담당자, 마감일, 완료(체크)</code></p>
+    </section>
+
+    <section class="ledger-wrap" id="ledgerWrap" hidden>
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th class="col-status"></th>
+            <th class="col-title">제목</th>
+            <th class="col-owner">담당자</th>
+            <th class="col-due">마감일</th>
+            <th class="col-dday">D-day</th>
+            <th class="col-action"></th>
+          </tr>
+        </thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<template id="rowEditTemplate">
+  <tr class="edit-row">
+    <td></td>
+    <td><input type="text" class="edit-title" placeholder="제목" /></td>
+    <td><input type="text" class="edit-owner" placeholder="담당자" /></td>
+    <td><input type="date" class="edit-due" /></td>
+    <td></td>
+    <td>
+      <button class="row-btn save">저장</button>
+      <button class="row-btn cancel">취소</button>
+    </td>
+  </tr>
+</template>
+
+<div id="settingsModal" class="modal-backdrop" hidden>
+  <div class="modal">
+    <h2>Google Sheets 연동</h2>
+    <p class="hint">
+      웹에서 입력한 내용이 지정한 구글 시트에 자동으로 저장/동기화됩니다.
+      클라이언트 ID와 스프레드시트는 Google Cloud Console과 Google Sheets에서 먼저 준비해야 합니다 (아래 README 참고).
+    </p>
+    <label for="cfgClientId">OAuth 클라이언트 ID</label>
+    <input id="cfgClientId" type="text" placeholder="xxxxxxxx.apps.googleusercontent.com" />
+
+    <label for="cfgSheetId">스프레드시트 ID</label>
+    <input id="cfgSheetId" type="text" placeholder="시트 URL의 /d/ 뒤 긴 문자열" />
+
+    <label for="cfgTabName">탭(시트) 이름</label>
+    <input id="cfgTabName" type="text" placeholder="업무목록" />
+
+    <div class="modal-actions">
+      <button id="cfgCancelBtn" class="btn small ghost">닫기</button>
+      <button id="cfgDisconnectBtn" class="btn small danger">연결 해제</button>
+      <button id="cfgSaveBtn" class="btn small primary" style="background:var(--teal);color:white;">저장하고 연결</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'worklist:data:v1';
+  const NOTIFY_KEY = 'worklist:notifyEnabled';
+
+  let state = loadState();
+
+  const el = {
+    fileInput: document.getElementById('fileInput'),
+    sheetTabs: document.getElementById('sheetTabs'),
+    ledgerBody: document.getElementById('ledgerBody'),
+    ledgerWrap: document.getElementById('ledgerWrap'),
+    emptyState: document.getElementById('emptyState'),
+    notifyBtn: document.getElementById('notifyBtn'),
+    addRowBtn: document.getElementById('addRowBtn'),
+    clearBtn: document.getElementById('clearBtn'),
+    toast: document.getElementById('toast'),
+    rowEditTemplate: document.getElementById('rowEditTemplate'),
+    connBadge: document.getElementById('connBadge'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    settingsModal: document.getElementById('settingsModal'),
+    cfgClientId: document.getElementById('cfgClientId'),
+    cfgSheetId: document.getElementById('cfgSheetId'),
+    cfgTabName: document.getElementById('cfgTabName'),
+    cfgCancelBtn: document.getElementById('cfgCancelBtn'),
+    cfgSaveBtn: document.getElementById('cfgSaveBtn'),
+    cfgDisconnectBtn: document.getElementById('cfgDisconnectBtn'),
+  };
+
+  let activeFilter = 'all';
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { /* ignore corrupt state */ }
+    return { sheets: { '업무목록': [] }, active: '업무목록' };
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function currentTasks() {
+    return state.sheets[state.active] || [];
+  }
+
+  // ---------------- Google Sheets sync ----------------
+
+  const GSHEETS_CONFIG_KEY = 'worklist:gsheetsConfig';
+  const GSHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+
+  let gsheets = { accessToken: null, tokenClient: null, numericSheetId: null, connecting: false };
+
+  function getSheetsConfig() {
+    try { return JSON.parse(localStorage.getItem(GSHEETS_CONFIG_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  function saveSheetsConfig(cfg) {
+    localStorage.setItem(GSHEETS_CONFIG_KEY, JSON.stringify(cfg));
+  }
+  function isSheetsMode() {
+    return !!(getSheetsConfig() && gsheets.accessToken);
+  }
+
+  function updateConnBadge() {
+    const cfg = getSheetsConfig();
+    const connected = isSheetsMode();
+    el.connBadge.textContent = connected ? `Sheets 연결됨 · ${cfg.tabName}` : 'Sheets 연결 안 됨';
+    el.connBadge.classList.toggle('on', connected);
+  }
+
+  function openSettings() {
+    const cfg = getSheetsConfig() || {};
+    el.cfgClientId.value = cfg.clientId || '';
+    el.cfgSheetId.value = cfg.spreadsheetId || '';
+    el.cfgTabName.value = cfg.tabName || '업무목록';
+    el.settingsModal.hidden = false;
+  }
+  function closeSettings() { el.settingsModal.hidden = true; }
+
+  el.settingsBtn.addEventListener('click', openSettings);
+  el.cfgCancelBtn.addEventListener('click', closeSettings);
+
+  el.cfgDisconnectBtn.addEventListener('click', () => {
+    localStorage.removeItem(GSHEETS_CONFIG_KEY);
+    gsheets = { accessToken: null, tokenClient: null, numericSheetId: null, connecting: false };
+    updateConnBadge();
+    closeSettings();
+    showToast('Google Sheets 연결을 해제했습니다. 로컬 저장 모드로 전환됩니다.');
+    state = loadState();
+    render();
+  });
+
+  el.cfgSaveBtn.addEventListener('click', async () => {
+    const clientId = el.cfgClientId.value.trim();
+    const spreadsheetId = el.cfgSheetId.value.trim();
+    const tabName = el.cfgTabName.value.trim() || '업무목록';
+    if (!clientId || !spreadsheetId) {
+      showToast('클라이언트 ID와 스프레드시트 ID를 모두 입력해주세요.');
+      return;
+    }
+    saveSheetsConfig({ clientId, spreadsheetId, tabName });
+    closeSettings();
+    await connectGoogle();
+  });
+
+  async function connectGoogle() {
+    const cfg = getSheetsConfig();
+    if (!cfg) { openSettings(); return; }
+    if (typeof google === 'undefined' || !google.accounts) {
+      showToast('Google 인증 스크립트를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    if (!gsheets.tokenClient) {
+      gsheets.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: cfg.clientId,
+        scope: GSHEETS_SCOPE,
+        callback: async (resp) => {
+          gsheets.connecting = false;
+          if (resp.error) {
+            showToast('Google 인증에 실패했습니다: ' + resp.error);
+            return;
+          }
+          gsheets.accessToken = resp.access_token;
+          try {
+            await afterConnect();
+          } catch (err) {
+            console.error(err);
+            showToast('스프레드시트에 연결하지 못했습니다. ID를 확인해주세요.');
+          }
+        },
+      });
+    }
+    gsheets.connecting = true;
+    gsheets.tokenClient.requestAccessToken({ prompt: gsheets.accessToken ? '' : 'consent' });
+  }
+
+  async function sheetsFetch(path, options) {
+    const cfg = getSheetsConfig();
+    const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.spreadsheetId}${path}`, {
+      ...(options || {}),
+      headers: { ...((options && options.headers) || {}), Authorization: `Bearer ${gsheets.accessToken}` },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Sheets API ${res.status}: ${text}`);
+    }
+    return res.json();
+  }
+
+  async function afterConnect() {
+    const cfg = getSheetsConfig();
+    const meta = await sheetsFetch('');
+    const sheet = (meta.sheets || []).find(s => s.properties.title === cfg.tabName);
+    if (!sheet) {
+      showToast(`스프레드시트에서 "${cfg.tabName}" 탭을 찾을 수 없습니다. 탭 이름을 확인해주세요.`);
+      return;
+    }
+    gsheets.numericSheetId = sheet.properties.sheetId;
+    updateConnBadge();
+    await loadFromSheets();
+    showToast('Google Sheets에 연결되었습니다.');
+  }
+
+  async function loadFromSheets() {
+    const cfg = getSheetsConfig();
+    const data = await sheetsFetch(`/values/${encodeURIComponent(cfg.tabName)}!A2:D2000`);
+    const rows = data.values || [];
+    const tasks = rows
+      .map((r, i) => ({
+        id: cryptoId(),
+        row: i + 2,
+        title: (r[0] || '').toString().trim(),
+        owner: (r[1] || '').toString().trim(),
+        due: normalizeDueString(r[2] || ''),
+        done: !!(r[3] && r[3].toString().trim()),
+      }))
+      .filter(t => t.title);
+    state.sheets = { [cfg.tabName]: tasks };
+    state.active = cfg.tabName;
+    render();
+  }
+
+  function normalizeDueString(v) {
+    if (!v) return null;
+    const s = String(v).trim();
+    if (!s) return null;
+    const d = new Date(s);
+    return isNaN(d) ? s : toISODate(d);
+  }
+
+  async function sheetsAppendTask(task) {
+    const cfg = getSheetsConfig();
+    await sheetsFetch(`/values/${encodeURIComponent(cfg.tabName)}!A:D:append?valueInputOption=USER_ENTERED`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [[task.title, task.owner || '', task.due || '', task.done ? 'V' : '']] }),
+    });
+    await loadFromSheets();
+  }
+
+  async function sheetsUpdateDone(task) {
+    const cfg = getSheetsConfig();
+    await sheetsFetch(`/values/${encodeURIComponent(cfg.tabName)}!D${task.row}?valueInputOption=USER_ENTERED`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ values: [[task.done ? 'V' : '']] }),
+    });
+  }
+
+  async function sheetsDeleteRow(task) {
+    await sheetsFetch(':batchUpdate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          deleteDimension: {
+            range: { sheetId: gsheets.numericSheetId, dimension: 'ROWS', startIndex: task.row - 1, endIndex: task.row },
+          },
+        }],
+      }),
+    });
+    await loadFromSheets();
+  }
+
+  // Try to silently resume a Sheets connection saved from a previous visit.
+  // (Google requires a user gesture to grant the token the first time; after that,
+  // this attempts a silent refresh so the person doesn't have to click every visit.)
+  function tryResumeSheetsConnection() {
+    const cfg = getSheetsConfig();
+    if (!cfg || typeof google === 'undefined' || !google.accounts) return;
+    gsheets.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cfg.clientId,
+      scope: GSHEETS_SCOPE,
+      callback: async (resp) => {
+        if (resp.error) { updateConnBadge(); return; }
+        gsheets.accessToken = resp.access_token;
+        try { await afterConnect(); } catch (e) { console.error(e); }
+      },
+    });
+    gsheets.tokenClient.requestAccessToken({ prompt: '' });
+  }
+
+  const COLUMN_ALIASES = {
+    title: ['제목', '업무', '업무명', 'title', 'task', 'name'],
+    owner: ['담당자', '담당', 'owner', 'assignee', '이름'],
+    due: ['마감일', '마감', '기한', 'due', 'deadline', 'date'],
+    check: ['완료', '완료여부', 'check', 'checkbox', 'done'],
+    status: ['상태', 'status'],
+  };
+
+  function normalizeKey(k) {
+    return String(k).trim().toLowerCase();
+  }
+
+  function mapRow(row) {
+    const keys = Object.keys(row);
+    const find = (aliases) => {
+      for (const k of keys) {
+        const nk = normalizeKey(k);
+        if (aliases.some(a => nk === normalizeKey(a))) return row[k];
+      }
+      return undefined;
+    };
+
+    const title = find(COLUMN_ALIASES.title);
+    const owner = find(COLUMN_ALIASES.owner);
+    const dueRaw = find(COLUMN_ALIASES.due);
+    const checkRaw = find(COLUMN_ALIASES.check);
+    const statusRaw = find(COLUMN_ALIASES.status);
+
+    if (title === undefined || String(title).trim() === '') return null;
+
+    let due = null;
+    if (dueRaw instanceof Date) {
+      due = toISODate(dueRaw);
+    } else if (typeof dueRaw === 'number') {
+      const d = XLSX.SSF.parse_date_code(dueRaw);
+      if (d) due = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    } else if (typeof dueRaw === 'string' && dueRaw.trim()) {
+      const parsed = new Date(dueRaw);
+      due = isNaN(parsed) ? dueRaw.trim() : toISODate(parsed);
+    }
+
+    // "완료" column works like a checkbox: any mark in the cell = done, blank = not done.
+    // Falls back to the older text-based "상태" column (진행중/완료 등) if present instead.
+    const negativeMarks = ['', 'x', 'n', 'no', 'false', '0', '미완료'];
+    let done = false;
+    if (checkRaw !== undefined && checkRaw !== null) {
+      const v = String(checkRaw).trim().toLowerCase();
+      done = v !== '' && !negativeMarks.includes(v);
+    } else if (typeof statusRaw === 'string') {
+      const doneWords = ['완료', 'done', 'true', 'y', 'yes', '완'];
+      done = doneWords.includes(statusRaw.trim().toLowerCase());
+    }
+
+    return {
+      id: cryptoId(),
+      title: String(title).trim(),
+      owner: owner ? String(owner).trim() : '',
+      due,
+      done,
+    };
+  }
+
+  function toISODate(d) {
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function cryptoId() {
+    return 'id-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  el.fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (isSheetsMode()) {
+      showToast('Sheets 연동 모드에서는 파일 업로드 대신 구글 시트를 직접 편집하거나 "+ 항목 추가"를 사용하세요.');
+      el.fileInput.value = '';
+      return;
+    }
+    try {
+      const data = await file.arrayBuffer();
+      const wb = XLSX.read(data, { cellDates: true });
+      const newSheets = {};
+      wb.SheetNames.forEach((name) => {
+        const ws = wb.Sheets[name];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        const tasks = rows.map(mapRow).filter(Boolean);
+        if (tasks.length) newSheets[name] = tasks;
+      });
+      if (Object.keys(newSheets).length === 0) {
+        showToast('불러온 시트에서 유효한 항목을 찾지 못했습니다. 열 이름을 확인해주세요.');
+        return;
+      }
+      state.sheets = { ...state.sheets, ...newSheets };
+      state.active = Object.keys(newSheets)[0];
+      saveState();
+      render();
+      showToast(`${Object.keys(newSheets).length}개 시트를 불러왔습니다.`);
+      checkDeadlines(true);
+    } catch (err) {
+      console.error(err);
+      showToast('파일을 읽는 중 문제가 발생했습니다.');
+    } finally {
+      el.fileInput.value = '';
+    }
+  });
+
+  function computeDday(task) {
+    if (!task.due) return { label: '—', cls: 'normal' };
+    const due = new Date(task.due + 'T00:00:00');
+    if (isNaN(due)) return { label: '—', cls: 'normal' };
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff = Math.round((due - today) / 86400000);
+    if (task.done) return { label: '완료', cls: 'done' };
+    if (diff < 0) return { label: `D+${-diff}`, cls: 'overdue' };
+    if (diff === 0) return { label: 'D-Day', cls: 'urgent' };
+    if (diff <= 3) return { label: `D-${diff}`, cls: 'urgent' };
+    return { label: `D-${diff}`, cls: 'normal' };
+  }
+
+  function taskCategory(task) {
+    if (task.done) return 'done';
+    const { cls } = computeDday(task);
+    return cls;
+  }
+
+  function renderTabs() {
+    const names = Object.keys(state.sheets);
+    el.sheetTabs.innerHTML = '<div class="tabs-label">시트철</div>' + names.map(name => `
+      <button class="sheet-tab ${name === state.active ? 'active' : ''}" data-sheet="${escapeAttr(name)}">${escapeHtml(name)}</button>
+    `).join('');
+    el.sheetTabs.querySelectorAll('.sheet-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.active = btn.dataset.sheet;
+        saveState();
+        render();
+      });
+    });
+  }
+
+  function renderRows() {
+    const tasks = currentTasks();
+    const filtered = tasks.filter(t => activeFilter === 'all' || taskCategory(t) === activeFilter);
+
+    el.emptyState.hidden = tasks.length !== 0;
+    el.ledgerWrap.hidden = tasks.length === 0;
+
+    if (tasks.length === 0) return;
+
+    const order = { overdue: 0, urgent: 1, normal: 2, done: 3 };
+    const sorted = [...filtered].sort((a, b) => {
+      const oa = order[taskCategory(a)], ob = order[taskCategory(b)];
+      if (oa !== ob) return oa - ob;
+      return (a.due || '9999').localeCompare(b.due || '9999');
+    });
+
+    el.ledgerBody.innerHTML = sorted.map(t => {
+      const dday = computeDday(t);
+      return `
+        <tr class="${t.done ? 'is-done' : ''}" data-id="${t.id}">
+          <td><button class="status-check ${t.done ? 'checked' : ''}" data-action="toggle" title="완료 처리"></button></td>
+          <td><span class="title-text">${escapeHtml(t.title)}</span></td>
+          <td>${t.owner ? `<span class="owner-tag">${escapeHtml(t.owner)}</span>` : ''}</td>
+          <td>${t.due ? escapeHtml(t.due) : '<span style="color:var(--ink-soft)">미지정</span>'}</td>
+          <td><span class="dday-stamp ${dday.cls}">${dday.label}</span></td>
+          <td><button class="row-del" data-action="delete" title="삭제">✕</button></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function render() {
+    renderTabs();
+    renderRows();
+  }
+
+  el.ledgerBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const row = btn.closest('tr');
+    const id = row.dataset.id;
+    const tasks = currentTasks();
+    const idx = tasks.findIndex(t => t.id === id);
+    if (idx === -1) return;
+
+    if (btn.dataset.action === 'toggle') {
+      tasks[idx].done = !tasks[idx].done;
+      if (isSheetsMode()) {
+        render();
+        try { await sheetsUpdateDone(tasks[idx]); }
+        catch (err) { console.error(err); showToast('시트에 반영하지 못했습니다.'); }
+      } else {
+        saveState();
+        render();
+      }
+    } else if (btn.dataset.action === 'delete') {
+      if (isSheetsMode()) {
+        try { await sheetsDeleteRow(tasks[idx]); }
+        catch (err) { console.error(err); showToast('시트에서 삭제하지 못했습니다.'); }
+      } else {
+        tasks.splice(idx, 1);
+        saveState();
+        render();
+      }
+    }
+  });
+
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = chip.dataset.filter;
+      renderRows();
+    });
+  });
+
+  el.addRowBtn.addEventListener('click', () => {
+    const frag = el.rowEditTemplate.content.cloneNode(true);
+    el.ledgerBody.prepend(frag);
+    const editRow = el.ledgerBody.querySelector('.edit-row');
+    editRow.querySelector('.save').addEventListener('click', async () => {
+      const title = editRow.querySelector('.edit-title').value.trim();
+      const owner = editRow.querySelector('.edit-owner').value.trim();
+      const due = editRow.querySelector('.edit-due').value || null;
+      if (!title) { showToast('제목을 입력해주세요.'); return; }
+      const newTask = { id: cryptoId(), title, owner, due, done: false };
+      if (isSheetsMode()) {
+        try { await sheetsAppendTask(newTask); }
+        catch (err) { console.error(err); showToast('시트에 추가하지 못했습니다.'); render(); }
+      } else {
+        const list = state.sheets[state.active] || (state.sheets[state.active] = []);
+        list.push(newTask);
+        saveState();
+        render();
+      }
+    });
+    editRow.querySelector('.cancel').addEventListener('click', () => render());
+  });
+
+  el.clearBtn.addEventListener('click', () => {
+    if (isSheetsMode()) {
+      showToast('Sheets 연동 모드에서는 구글 시트에서 직접 행을 삭제해주세요.');
+      return;
+    }
+    if (!confirm('현재 시트의 모든 항목을 삭제할까요?')) return;
+    state.sheets[state.active] = [];
+    saveState();
+    render();
+  });
+
+  function showToast(msg) {
+    el.toast.textContent = msg;
+    el.toast.hidden = false;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { el.toast.hidden = true; }, 3200);
+  }
+
+  function updateNotifyBtnLabel() {
+    const enabled = localStorage.getItem(NOTIFY_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted';
+    el.notifyBtn.textContent = enabled ? '🔔 알림 켜짐' : '🔔 알림 켜기';
+  }
+
+  el.notifyBtn.addEventListener('click', async () => {
+    if (!('Notification' in window)) {
+      showToast('이 브라우저는 알림을 지원하지 않습니다.');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      localStorage.setItem(NOTIFY_KEY, '1');
+      showToast('마감 임박 알림을 켰습니다.');
+      checkDeadlines(true);
+    } else {
+      showToast('알림 권한이 거부되었습니다.');
+    }
+    updateNotifyBtnLabel();
+  });
+
+  function checkDeadlines(forceNotify) {
+    if (localStorage.getItem(NOTIFY_KEY) !== '1') return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const allTasks = Object.values(state.sheets).flat();
+    const urgentOrOverdue = allTasks.filter(t => !t.done && ['urgent', 'overdue'].includes(taskCategory(t)));
+    if (urgentOrOverdue.length === 0) return;
+
+    const lastCheck = sessionStorage.getItem('worklist:lastNotify');
+    const today = toISODate(new Date());
+    if (!forceNotify && lastCheck === today) return;
+
+    const names = urgentOrOverdue.slice(0, 3).map(t => t.title).join(', ');
+    const more = urgentOrOverdue.length > 3 ? ` 외 ${urgentOrOverdue.length - 3}건` : '';
+    new Notification('마감 임박 업무 알림', {
+      body: `${names}${more}`,
+      icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231E2A38'/%3E%3Crect x='140' y='120' width='232' height='280' rx='20' fill='%23FAF8F3'/%3E%3Crect x='170' y='160' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='210' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='260' width='120' height='18' rx='9' fill='%231E2A38'/%3E%3Ccircle cx='256' cy='340' r='40' fill='%23C97B3D'/%3E%3Cpath d='M238 340 L250 352 L276 324' stroke='%23FAF8F3' stroke-width='12' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+    });
+    sessionStorage.setItem('worklist:lastNotify', today);
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+  function escapeAttr(str) { return escapeHtml(str); }
+
+  updateNotifyBtnLabel();
+  updateConnBadge();
+  render();
+  checkDeadlines(false);
+  setInterval(() => checkDeadlines(false), 60 * 60 * 1000);
+
+  window.addEventListener('load', () => {
+    setTimeout(tryResumeSheetsConnection, 300);
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "업무 대장 · 워크리스트",
+  "short_name": "업무대장",
+  "description": "스프레드시트를 불러와 워크리스트로 정리하고 마감 임박 알림을 받는 개인용 업무 관리 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF8F3",
+  "theme_color": "#1E2A38",
+  "icons": [
+    { "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%231E2A38'/%3E%3Crect x='140' y='120' width='232' height='280' rx='20' fill='%23FAF8F3'/%3E%3Crect x='170' y='160' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='210' width='172' height='18' rx='9' fill='%231E2A38'/%3E%3Crect x='170' y='260' width='120' height='18' rx='9' fill='%231E2A38'/%3E%3Ccircle cx='256' cy='340' r='40' fill='%23C97B3D'/%3E%3Cpath d='M238 340 L250 352 L276 324' stroke='%23FAF8F3' stroke-width='12' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E", "sizes": "192x192 512x512", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
